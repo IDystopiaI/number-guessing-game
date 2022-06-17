@@ -33,7 +33,7 @@ STARTGAME
 
 STARTGAME () {
 SECRET_NUMBER=$(( RANDOM % 1000 + 1 ))
-echo my secret number $SECRET_NUMBER
+# DEBUG echo my secret number $SECRET_NUMBER
 echo "Guess the secret number between 1 and 1000:"
 
 # while number not guessed
@@ -69,20 +69,24 @@ do
 
 
       echo $($PSQL "SELECT username, user_id, game_id, best_game, games_played FROM user_table FULL JOIN game_records USING(user_id) WHERE username = '$USERNAME'") | while IFS="|" read Q_USERNAME Q_USER_ID  Q_GAME_ID Q_BEST_GAME Q_GAMES_PLAYED
-    do
-    #   # check if current $NUMBER_OF_GUESSES </-lt $Q_BEST_GAME
-    #   # update game_records table
-      if [[ $NUMBER_OF_GUESSES -lt $Q_BEST_GAME || -z $Q_BEST_GAME ]]
-      then
-        echo "$NUMBER_OF_GUESSES < $Q_BEST_GAME"
+      do
+      #   # check if current $NUMBER_OF_GUESSES </-lt $Q_BEST_GAME
+      #   # update game_records table
+      UPDATED_GAMES_PLAYED=$(( $Q_GAMES_PLAYED + 1 ))
+      # DEBUG echo "$UPDATED_GAMES_PLAYED *****"
+        if [[ $NUMBER_OF_GUESSES -lt $Q_BEST_GAME || -z $Q_BEST_GAME ]]
+        then
+          # DEBUG echo "$NUMBER_OF_GUESSES < $Q_BEST_GAME"
+          UPDATE_BEST_RESULT=$($PSQL "UPDATE game_records SET (best_game, games_played) = ($NUMBER_OF_GUESSES, $UPDATED_GAMES_PLAYED) WHERE user_id = $Q_USER_ID")
 
-      # else do not update best_game
-      else
-      echo "$NUMBER_OF_GUESSES > $Q_BEST_GAME"
+        # else do not update best_game
+        else
+        # DEBUGecho "$NUMBER_OF_GUESSES > $Q_BEST_GAME"
+        UPDATE_GAMES_PLAYED=$($PSQL "UPDATE game_records SET games_played = $UPDATED_GAMES_PLAYED WHERE user_id = $Q_USER_ID")
 
 
-      fi
-    done
+        fi
+      done
 
     fi
   fi
