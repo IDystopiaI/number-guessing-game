@@ -17,6 +17,9 @@ then
   echo "Welcome, $USERNAME! It looks like this is your first time here."
   # inserts
   ADD_USER_RESULT=$($PSQL "INSERT INTO user_table(username) VALUES('$USERNAME')")
+  # fetch new user_id and insert it into game_records
+  Q_USER_ID=$($PSQL "SELECT user_id FROM user_table WHERE username = '$USERNAME'")
+  INSERT_USER_ID=$($PSQL "INSERT INTO game_records(user_id) VALUES('$Q_USER_ID')")
 
 else
   echo "Welcome back, $Q_USERNAME! You have played $Q_GAMES_PLAYED games, and your best game took $Q_BEST_GAME guesses."
@@ -61,6 +64,25 @@ do
     # user guessed the number
     else
       echo "You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!"
+
+      # fetch game_records info
+
+
+      echo $($PSQL "SELECT username, user_id, game_id, best_game, games_played FROM user_table FULL JOIN game_records USING(user_id) WHERE username = '$USERNAME'") | while IFS="|" read Q_USERNAME Q_USER_ID  Q_GAME_ID Q_BEST_GAME Q_GAMES_PLAYED
+    do
+    #   # check if current $NUMBER_OF_GUESSES </-lt $Q_BEST_GAME
+    #   # update game_records table
+      if [[ $NUMBER_OF_GUESSES -lt $Q_BEST_GAME || -z $Q_BEST_GAME ]]
+      then
+        echo "$NUMBER_OF_GUESSES < $Q_BEST_GAME"
+
+      # else do not update best_game
+      else
+      echo "$NUMBER_OF_GUESSES > $Q_BEST_GAME"
+
+
+      fi
+    done
 
     fi
   fi
