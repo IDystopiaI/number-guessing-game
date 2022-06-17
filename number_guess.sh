@@ -1,15 +1,30 @@
 #!/bin/bash
 
+PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
 
 GREETING() {
 echo "Enter your username:"
 read USERNAME
+
 # select query to retrieve username from db
-# if [[ -z $USERNAME ]]
-# welcome message and insert into db
-# else 
-# welcome back, this is your x time playing
+echo $($PSQL "SELECT username, user_id, game_id, best_game, games_played FROM user_table FULL JOIN game_records USING(user_id) WHERE username = '$USERNAME'") | while IFS="|" read Q_USERNAME Q_USER_ID  Q_GAME_ID Q_BEST_GAME Q_GAMES_PLAYED
+do
+  # DEBUG checking variable values stored correctly
+  # echo "$Q_USERNAME $Q_USER_ID $Q_GAME_ID $Q_BEST_GAME $Q_GAMES_PLAYED"
+if [[ -z $Q_USERNAME ]]
+then 
+  echo "Welcome, $USERNAME! It looks like this is your first time here."
+  # inserts
+  ADD_USER_RESULT=$($PSQL "INSERT INTO user_table(username) VALUES('$USERNAME')")
+
+else
+  echo "Welcome back, $Q_USERNAME! You have played $Q_GAMES_PLAYED games, and your best game took $Q_BEST_GAME guesses."
+
+fi
+  # $Q_USERNAME $Q_USER_ID $Q_GAME_ID $Q_BEST_GAME $Q_GAMES_PLAYED only exist in the scope of this while loop
+done
+
 STARTGAME
 }
 
